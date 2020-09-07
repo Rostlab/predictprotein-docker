@@ -1,0 +1,6 @@
+Explanation: Package: hmmer
+Explanation: Pin: release a=testing
+Explanation: Pin-Priority: 991
+Package: hmmer
+Pin: version 3.1b2~karl1-1
+Pin-Priority: 991

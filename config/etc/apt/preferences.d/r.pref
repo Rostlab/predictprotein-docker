@@ -1,0 +1,4 @@
+Package: r-base r-base-core r-recommended
+Pin: origin o=CRAN,c=main,l=CRAN Backports
+Pin: version 3.5.*
+Pin-Priority: 1001

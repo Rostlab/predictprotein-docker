@@ -1,0 +1,30 @@
+[predictprotein]
+# use/do not use result cache
+use_cache=1
+
+# bigblastdb: Path to comprehensive blast database
+bigblastdb=/mnt/ppcache/rost_db/data/big/big
+
+# big80blastdb: Path to comprehensive blast database at 80% sequence identity redundancy level
+big80blastdb=/mnt/ppcache/rost_db/data/big/big_80
+
+# prositedat: Path to `prosite.dat' file, see L<https://rostlab.org/owiki/index.php/Packages#Resource_definitions>
+prositedat=/mnt/ppcache/rost_db/data/prosite/prosite.dat
+
+# prositeconvdat: Path to `prosite_convert.dat' file, see L<https://rostlab.org/owiki/index.php/Packages#Resource_definitions>
+prositeconvdat=/mnt/ppcache/rost_db/data/prosite/prosite_convert.dat
+
+# swissblastdb: Path to SwissProt blast database
+swissblastdb=/mnt/ppcache/rost_db/data/swissprot/uniprot_sprot
+
+# pfam2 db
+pfam2db=/mnt/ppcache/rost_db/data/pfam_legacy/Pfam_ls
+
+# pfam3 db
+pfam3db=/mnt/ppcache/rost_db/data/pfam/Pfam-A.hmm
+
+# Swiss-Prot key 'index' (e.g.) for loctree
+spkeyidx=/mnt/ppcache/rost_db/data/swissprot/keyindex_loctree.txt
+
+# default_targets: targets to make if none is given on the command line (separate targets with space)
+default_targets=all optional

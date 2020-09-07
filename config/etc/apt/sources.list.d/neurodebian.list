@@ -1,0 +1,2 @@
+deb http://neurodebian.g-node.org data main contrib non-free
+deb http://neurodebian.g-node.org jessie main contrib non-free

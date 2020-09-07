@@ -1,0 +1,4 @@
+[client]
+host=example.com
+user=mymysqluser
+password=mymysqlpassword
