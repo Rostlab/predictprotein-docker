@@ -1,3 +1,5 @@
+[[_TOC_]]
+
 # predictprotein Docker
 ---
 
@@ -31,7 +33,7 @@ Don't do anything with the file just yet - futher instructions are below.
 
 After you've cloned this repository, you should be able to in to its directory, and run:
 
-```
+```shell
 $ export DOCKER_BUILDKIT=1
 $ docker build -t predictprotein .
 ```
@@ -56,7 +58,7 @@ This requires using [Docker bind mounts](https://docs.docker.com/storage/bind-mo
 
 Here we'll use `/var/tmp/pp-data/` as our base directory for our bind mounts to the predictprotein Docker container. Adjust accordingly for your installation.
 
-```
+```shell
 $ mkdir -p /var/tmp/pp-data/configs
 $ mkdir -p /var/tmp/pp-data/ppcache/{ppcache-data,results-retrieve,rost_db,sequence-submit}
 ```
@@ -79,7 +81,7 @@ The PredictProtein Database provided by [Rostlab](https://rostlab.org) is a mont
 
 You should have already downloaded the file `rostlab-data.txz`. If not see [Requirements](#requirements).
 
-```
+```shell
 $ mv rostlab-data.txz /var/tmp/pp-data/ppcache/rost_db
 $ cd /var/tmp/pp-data/ppcache/rost_db
 $ xz -d rostlab-data.txz
@@ -94,15 +96,15 @@ The following are some examples to help you get an idea of how predictprotein wo
 ### To get help about the command
 By default, running the Docker container will produce the help information for the predictprotein command, just like running `predictprotein --help`:
 
-```
+```shell
 $ docker run --rm predictprotein
 ```
 
 **Note:** specifying the option `--rm` will automatically remove the container when it exits. The default is false. In this example, it's used just because we're calling the help information.
 
-### Using a protein sequence entered on the command line, running all available methods (`--target all` and `--target optional`), overwriting any pre-existing cached results (`--force-cache-store`)
+### Using a protein sequence entered on the command line, running all available methods, overwriting any pre-existing cached results
 
-```
+```shell
 $ docker run \
   --mount type=bind,source=/opt/docker/Development/pp_mounts/ppcache,target=/mnt/ppcache \
   predictprotein \
@@ -112,5 +114,24 @@ $ docker run \
   --target all \
   --target optional
 ```
+
+Here, there are several extra options being used, which are described in detail viewing the predictprotein help:
+* `--sequence` - the protein sequence to be submitted to predictprotein
+* `--target all` and `--target optional` - specifies which methods should be run, in this case "all" standard, as well as optional methods; thus, all methods predictprotein has to offer
+* `--force-cache-store` - predictprotein does not fetch anything from the cache but does store the results, completely replacing what was cached.
+
+In this example, the computed results for this sequence, would be stored in the cache on the Docker host at the bind-mount location:
+
+```shell
+/opt/docker/Development/pp_mounts/ppcache/ppcache-data/9f/1f/9f1f3a0595e02af5594bcc34b4cff8ec065fbc8f
+```
+
+Items to note:
+* The bind mount-point may be changed by changing the Docker host path in the `--mount` option of the `docker run` command
+* The predictprotein cache location in the container may be changed by defining a different path in the `ppcacherc` configuration, after bind-mounting the configuration directory
+* The predictprotein cache management will translate a submitted sequence in to a 40-character hash, which is used for storing and referencing the protein on the cache-root of the file system, in the format: \
+`(hash chars 1 & 2)/(hash chars 3 & 4)/(hash chars 1-40)` \
+Within this directory, you'll find all of the results produced by the each of the methods that predictprotein uses, with the filenames in the format: \
+`query.<method>[<.sub-method>]`
 
 ... More to come!
