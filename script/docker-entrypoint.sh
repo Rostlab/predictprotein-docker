@@ -3,7 +3,7 @@ set -e
 
 BIND_MOUNT_CONFIG_DIR="/etc/docker-predictprotein"
 CONTAINER_CONFIG_STAGING_DIR="/var/tmp/config"
-CONFIG_FILES=("consurfrc" "metastudentrc" "ppcache-my.cnf" "ppcacherc" "predictproteinrc") 
+CONFIG_FILES=("consurfrc" "metastudentrc" "ppcache-my.cnf" "ppcacherc" "ppres_tables_mysql.sql" "predictproteinrc") 
 
 # Copy config files from staging to bind mounts if they don't already exist
 for i in "${CONFIG_FILES[@]}"
