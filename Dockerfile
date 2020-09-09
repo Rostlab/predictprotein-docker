@@ -76,8 +76,9 @@ RUN mkdir /etc/docker-predictprotein && \
 COPY /script/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 # Configuration files copied to staging area in container
-COPY /config/etc/*rc              /var/tmp/config/
-COPY /config/etc/ppcache-my.cnf   /var/tmp/config/ppcache-my.cnf
+COPY /config/etc/*rc                     /var/tmp/config/
+COPY /config/etc/ppcache-my.cnf          /var/tmp/config/ppcache-my.cnf
+COPY /config/sql/ppres_tables_mysql.sql  /var/tmp/config/ppres_tables_mysql.sql
 
 # At this point, there are no files at /etc/docker-predictprotein/.
 # The following links will be dangling. This is intentional since the
