@@ -15,7 +15,7 @@ These utilities include:
 * `ppc_lock`       - lock a cache slot
 * `ppc_store`      - store results into PredictProtein cache
 
-Although only the packages and data models necessary for its proper functioning have been installed, the produced Docker image will be larger than 10GB (!) in size, which doesn't include the necessary databases needed.
+Although only the packages and data models necessary for its proper functioning have been installed, the produced Docker image will be larger than 12GB (!) in size, which doesn't include the necessary databases needed.
 
 ## The Produced Docker Image Might NOT Be Redistributable
 
@@ -80,11 +80,15 @@ $ mkdir -p /var/tmp/pp-data/ppcache/{ppcache-data,results-retrieve,rost_db,seque
 
 When bind-mounted using the `docker run` command as later documented, the following directories on the Docker host will contain the following data, which will remain even after an erased or shutdown container:
 
-* `/var/tmp/pp-data/config`                  - *(optional)* configuration files affecting how predictprotein runs inside of the container. Necessary if you plan on using MySQL result storage
-* `/var/tmp/pp-data/ppcache/ppcache-data`     - **(required)** predictprotein cache (ppcache) where computed results are stored, indexed by computed hash.
+* `/var/tmp/pp-data/config`                   - *(optional)* configuration files affecting how predictprotein runs inside of the container. Necessary if you plan on using [MySQL result storage](#additional-result-data-using-an-external-mysql-instance)
+* `/var/tmp/pp-data/method-data/loctree3      - *(optional)* data files used for loctree3 algorithm. Including this directory will override the already-included loctree3 data files.
+* `/var/tmp/pp-data/method-data/metastudent   - *(optional)* data files used for metastudent algorithm. Including this directory will override the already-included metastudent data files.
+* `/var/tmp/pp-data/ppcache/ppcache-data`     - **(required)** predictprotein cache (ppcache) where computed results are stored, indexed by computed hash
 * `/var/tmp/pp-data/ppcache/results-retrieve` - *(optional)* may be used, when bind mountd, to retrieve a result set from the cache (see ppc_fetch)
 * `/var/tmp/pp-data/ppcache/rost_db`          - **(required)** rost_db (internal to Rostlab) or PPMI databases
 * `/var/tmp/pp-data/ppcache/sequence-submit`  - *(optional)* may be used, when bind mounted, to submit sequences using a file
+
+*Note*: any sub-directories that you create on the Docker host under `/var/tmp/pp-data/ppcache/`, will *hide* existing directories in the Docker container when `/var/tmp/pp-data/ppcache` on the Docker host is bind-mounted to the Docker container on `/mnt/ppcache`.
 
 ## PredictProtein Database Installation
 
@@ -99,10 +103,26 @@ You should have already downloaded the file `rostlab-data.txz`. If not see [Requ
 ```shell
 $ mv rostlab-data.txz /var/tmp/pp-data/ppcache/rost_db
 $ cd /var/tmp/pp-data/ppcache/rost_db
-$ xz -d rostlab-data.txz
-$ tar xvf rostlab-data.tar
-$ rm -f rostlab-data.tar
+$ tar -Jxvf rostlab-data.txz
+$ rm -f rostlab-data.txz
 ```
+## LocTree3 and MetaStudent Data Files
+
+Included in the Dockerfile are commands to download and install LocTree3 and MetaStudent data files in to the resulting Docker image, that are necessary for these methods to run. They have been included to ease the requirements, configuration, and installation for the end-user (you).
+
+### LocTree3
+
+LocTree3 uses a script that is contained within its package, to download and install its necessary data files, called from the Dockerfile. It installs these data files in the directory `/usr/share/loctree2-data` in the image.
+
+If you would like to inspect, change, or update these data files, and have [created the Docker host data and configuration file directories](#create-docker-host-data-and-configuration-file-directories-for-predictprotein), as documented above, you could bind-mount `/var/tmp/pp-data/method-data/loctree3` to `/usr/share/loctree2-data`.
+
+### MetaStudent
+
+MetaStudent is downloaded, extracted, compiled, and installed using commands from within the Dockerfile to `/usr/share/metastudent-data` in the image, since there is no included script within its package.
+
+MetaStudent data may be downloaded from [ftp://rostlab.org/metastudent](ftp://rostlab.org/metastudent). If you would like to inspect, change, or update these data files, and have [created the Docker host data and configuration file directories](#create-docker-host-data-and-configuration-file-directories-for-predictprotein), as documented above, you could bind-mount `/var/tmp/pp-data/method-data/metastudent` to `/usr/share/metastudent-data`.
+
+If you like to use a different version than what is used in this Dockerfile. You may refer to the Dockerfile for the commands used to accomplish a change of Metastudent data files; however, at this time, there are no planned updates for MetaStudent data files. 
 
 ## The predictprotein Cache
 

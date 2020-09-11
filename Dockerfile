@@ -25,7 +25,9 @@ RUN apt-get update && \
     ca-certificates \
     gcc \
     locales \
-    patch && \
+    patch \
+    wget \ 
+    xz-utils && \
     localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 && \
     rm -rf /var/lib/apt/lists/*
 
@@ -57,20 +59,26 @@ RUN apt-get update && \
     predictprotein-nonfree && \
     rm -rf /var/lib/apt/lists/*
 
-# Retrieve data models needed for loctree3
-RUN /usr/share/loctree3/loctree2data
-
 # Now that the packages are installed, copy configs and make necessary ones
 # available to docker hosts for configuring external services.
 RUN mkdir /etc/docker-predictprotein && \
     mkdir /etc/ppcache && \
     mkdir /mnt/ppcache && \
-    mkdir /mnt/ppcache/metastudent && \
     mkdir /mnt/ppcache/ppcache-data && \
     mkdir /mnt/ppcache/rost_db && \
     mkdir /mnt/ppcache/sequence-submit && \
     mkdir /mnt/ppcache/results-retrieve && \
+    mkdir /usr/share/metastudent-data && \
     mkdir /var/tmp/config
+
+# Retrieve data models needed for loctree3 and metastudent data files
+RUN /usr/share/loctree3/loctree2data && \
+    wget -O /usr/share/metastudent-data/metastudent-data-3-1.0.1.tar.xz \
+    ftp://rostlab.org/metastudent/metastudent-data-3-1.0.1.tar.xz && \
+    tar --no-same-owner --no-same-permissions --directory=/usr/share/metastudent-data/ -Jxvf /usr/share/metastudent-data/metastudent-data-3-1.0.1.tar.xz && \
+    (cd /usr/share/metastudent-data/metastudent-data-3-1.0.1 && ./configure) && \
+    make --directory=/usr/share/metastudent-data/metastudent-data-3-1.0.1 && \
+    rm -f /usr/share/metastudent-data/metastudent-data-3-1.0.1.tar.xz
 
 # Entrypoint script - very important
 COPY /script/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
@@ -95,16 +103,17 @@ RUN ln -s /etc/docker-predictprotein/consurfrc         /etc/consurfrc && \
 # Create user for running predictprotein - not host dependent
 RUN groupadd -g 1000000 atlasg && useradd --no-log-init -g 1000000 -u 1000000 ppcache
 
-# /etc/docker-predictprotein/ contains the configuration files
+# /etc/docker-predictprotein/ - contains the configuration files
 # /mnt/ppcache contains subdirectories:
-# * metastudent - data files used for metastudent algorithm
 # * ppcache-data - predictprotein cache (ppcache) results database
 # * rost_db      - rost_db (internal to Rostlab) or PPMI databases
 # * sequence-submit - may be used, when bind mounted, to submit sequences using a file
 # * results-retrieve - may be used, when bind mountd, to retrieve a result set from the cache (see ppc_fetch)
 # If you don't bind with /mnt/ppcache with the above direcotries, they won't show up, since your bind mount
 # hides the existing sub-directories that already exist under /mnt/ppcache in the container.
-VOLUME ["/etc/docker-predictprotein/", "/mnt/ppcache/"]
+# /usr/share/loctree2-data - loctree3 data directory
+# /usr/share/metastudent-data - metastudent data directory
+VOLUME ["/etc/docker-predictprotein/", "/mnt/ppcache/", "/usr/share/loctree2-data", "/usr/share/metastudent-data"]
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["predictprotein", "--help"]
