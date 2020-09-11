@@ -42,7 +42,7 @@ To download this database manually or using a terminal/CLI:
 
 *These files are automatically generated near the end of each month.*
 
-Don't do anything with the file just yet - futher instructions are below.
+Don't do anything with the file just yet - [futher instructions are below](#predictProtein-database-installation).
 
 ## Building the Docker Image 
 
