@@ -17,20 +17,9 @@ These utilities include:
 
 Although only the packages and data models necessary for its proper functioning have been installed, the produced Docker image will be larger than 12GB (!) in size, which doesn't include the necessary databases needed.
 
-## The Produced Docker Image Might NOT Be Redistributable
+## The Produced Docker Image License Is Now AFL-3.0
 
-This Dockerfile includes the command to install the `predictprotein-nonfree` package, which allows `predictprotein` to run "optional" methods (using the `--target optional` option), deemed non-redistributable/non-free at the time of package creation. At the time of this writing, I (@karl), don't know if this is still true, or if it ever was. However, in order to make this a complete copy of what we at Rostlab and PredictProtein.org use, the `predictprotein-nonfree` package must be included. Therefore, before attempting to publically publish this Dockerfile or Docker image, make absolutely sure you're legally permitted to redistribute the "non-free" portions/methods in predictprotein, or manually remove the "non-free" portions/methods before redistribution or publicly publishing.
-
-The `predictprotein-nonfree` depends on the following packages:
-* consurf
-* loctree3
-* metadisorder
-* psic
-* rost-runpsic
-* somena
-* svm-light5
-* tmhmm
-* tmseg
+**By using this sofware, you agree and are bound to the terms in the [Academic Free License ("AFL") v. 3.0](https://opensource.org/licenses/AFL-3.0).**
 
 ## Requirements
 
