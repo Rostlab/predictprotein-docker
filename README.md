@@ -23,7 +23,7 @@ Although only the packages and data models necessary for its proper functioning 
 
 ## Requirements
 
-Other than being able to run a Docker image, it is absolutely necessary that you have the [PredictProtein Database](http://www.rostlab.org/services/ppmi/download_file?format=gzip&file_to_download=db) downloaded.
+Other than being able to run a Docker image and [having a MySQL instance to connect to](#additional-result-data-using-an-external-mysql-instance), it is absolutely necessary that you have the [PredictProtein Database](http://www.rostlab.org/services/ppmi/download_file?format=gzip&file_to_download=db) downloaded.
 
 To download this database manually or using a terminal/CLI:
 
@@ -55,6 +55,7 @@ However, in order for predictprotein to properly run, and for you to have access
 
 * the PredictProtein database downloaded earlier
 * storage for computed results, which predictprotein will produce
+* an accessible and [configured MySQL server](#additional-result-data-using-an-external-mysql-instance)
 
 This requires using [Docker bind mounts](https://docs.docker.com/storage/bind-mounts/) that bind-mount a directory from the Docker host to the Docker predictprotein container, which is configured on the command line, when running a container for the first time.
 
@@ -69,9 +70,9 @@ $ mkdir -p /var/tmp/pp-data/ppcache/{ppcache-data,results-retrieve,rost_db,seque
 
 When bind-mounted using the `docker run` command as later documented, the following directories on the Docker host will contain the following data, which will remain even after an erased or shutdown container:
 
-* `/var/tmp/pp-data/config`                   - *(optional)* configuration files affecting how predictprotein runs inside of the container. Necessary if you plan on using [MySQL result storage](#additional-result-data-using-an-external-mysql-instance)
-* `/var/tmp/pp-data/method-data/loctree3      - *(optional)* data files used for loctree3 algorithm. Including this directory will override the already-included loctree3 data files.
-* `/var/tmp/pp-data/method-data/metastudent   - *(optional)* data files used for metastudent algorithm. Including this directory will override the already-included metastudent data files.
+* `/var/tmp/pp-data/config`                   - **(required)** configuration files affecting how predictprotein runs inside of the container. You'll need to configure [MySQL result storage](#additional-result-data-using-an-external-mysql-instance)
+* `/var/tmp/pp-data/method-data/loctree3`      - *(optional)* data files used for loctree3 algorithm. Including this directory will override the already-included loctree3 data files.
+* `/var/tmp/pp-data/method-data/metastudent`   - *(optional)* data files used for metastudent algorithm. Including this directory will override the already-included metastudent data files.
 * `/var/tmp/pp-data/ppcache/ppcache-data`     - **(required)** predictprotein cache (ppcache) where computed results are stored, indexed by computed hash
 * `/var/tmp/pp-data/ppcache/results-retrieve` - *(optional)* may be used, when bind mountd, to retrieve a result set from the cache (see ppc_fetch)
 * `/var/tmp/pp-data/ppcache/rost_db`          - **(required)** rost_db (internal to Rostlab) or PPMI databases
@@ -131,7 +132,7 @@ The predictprotein cache location in the container may be changed by defining a 
 
 ## Running predictprotein... (Examples Please!)
 
-The following are some examples to help you get an idea of how predictprotein work in its Docker-ized form, using the directory tree as described in [Create Docker host data and configuration file directories for predictprotein](#create-docker-host-data-and-configuration-file-directories-for-predictprotein)
+The following are some examples to help you get an idea of how predictprotein work in its Docker-ized form, using the directory tree as described in [Create Docker host data and configuration file directories for predictprotein](#create-docker-host-data-and-configuration-file-directories-for-predictprotein), and having a [configured MySQL server](#additional-result-data-using-an-external-mysql-instance).
 
 ### To get help about the command
 By default, running the Docker container will produce the help information for the predictprotein command, just like running `predictprotein --help`:
@@ -147,6 +148,7 @@ $ docker run --rm predictprotein
 ```shell
 $ docker run \
   --mount type=bind,source=/var/tmp/pp-data/ppcache,target=/mnt/ppcache \
+  --mount type=bind,source=/var/tmp/pp-data/config,target=/etc/docker-predictprotein \
   predictprotein \
   predictprotein \
   --sequence MFRTKRSALVRRLWRSRAPGGNSR \
@@ -175,6 +177,7 @@ Items to note:
 ```shell
 $ docker run \
   --mount type=bind,source=/var/tmp/pp-data/ppcache,target=/mnt/ppcache \
+  --mount type=bind,source=/var/tmp/pp-data/config,target=/etc/docker-predictprotein \
   predictprotein \
   predictprotein \
   --seqfile /mnt/ppcache/sequence-submit/my_sequence.fasta \
@@ -212,11 +215,11 @@ So, now you can run it just like we do, and reproduce the same results as [predi
 
 ## Changing Default Configuration Files
 
-By default, the Docker container will look in `/etc/docker-predictprotein` (inside its container), for the configuration files needed to run.
+By default, the Docker container will look in `/etc/docker-predictprotein` (inside its container), for the configuration files needed to run. However, you'll need to adjust settings for [configuring MySQL services](#additional-result-data-using-an-external-mysql-instance)
 
 **Note**: every time the Docker container is run, a check is done to make sure all of the necessary configuration files exist in their expected location within the container, `/etc/docker-predictprotein`. Missing configuration files are automatically created, copied from the Docker container directory `/var/tmp/config/` to `/etc/docker-predictprotein`
 
-If you would like to access the configuration files, or to enable [MySQL services](#additional-result-data-using-an-external-mysql-instance), you'll need to bind-mount from your Docker host, to the Docker container at `/etc/docker-predictprotein`:
+In order to access the configuration files, to configure [MySQL services](#additional-result-data-using-an-external-mysql-instance), for instance, you'll need to bind-mount from your Docker host, to the Docker container at `/etc/docker-predictprotein`:
 
 ```shell
 $ docker run \
@@ -234,8 +237,6 @@ In this example, the `/var/tmp/pp-data/config` directory is bind-mounted to `/et
 
 With this in mind, if you edit any of the configuration files, their state will be maintained regardless if the container is stopped or erased. Multiple running container instances of the Docker image may also bind-mount to this directory to use the same configuration.
 
-Lastly, if you then decide not to bind-mount the configuration directory to the Docker host, the configuration files in the container will not be hidden by the bind-mount, and therefore be used.
-
 ### Initializing or resetting configuration files to their defaults
 
 In the case that you would like to reset all configuration files to the defaults contained within the Docker image, no matter what configuration files already exist, you may execute the following Docker run command:
@@ -248,23 +249,17 @@ $ docker run --rm -it predictprotein init
 
 ## Additional Result Data Using an External MySQL Instance
 
-In addition to the result files stored in the [predictprotein cache](#the-predictprotein-cache), predictprotein also can store additional result data in various tables within an external MySQL instance. This was not included within the Docker image in order to keep size and resource usage down to a minimum, while allowing the user the possiblity of tuning their MySQL server to their liking.
+In addition to the result files stored in the [predictprotein cache](#the-predictprotein-cache), predictprotein also stores additional result data in various tables within an external MySQL instance. This was not included within the Docker image in order to keep size and resource usage down to a minimum, while allowing the user the possiblity of tuning their MySQL server to their liking.
 
 ### Adjusting predictprotein configuration files
 
-You can enable the MySQL services predictprotein offers, by [changing values in two of the default configuration files](#changing-default-configuration-files), namely:
+Enable the MySQL services predictprotein offers, by [changing values in one of the default configuration files](#changing-default-configuration-files), namely:
 
 * `ppcache-my.cnf` - MySQL connection information, following the same syntax as a user-defined my.cnf file
-* `ppcacherc` - the predictprotein cache configuration file
 
 In `ppcache-my.cnf`, you must enter the details necessary to connect to your MySQL instance.
 
-In `ppcacherc`, all you have to do is *uncomment* one line (i.e.. don't change the path or filename):
-```
-# mysql_read_default_file=/etc/ppcache/my.cnf
-```
-
-**Note**: when the `mysql_read_default_file` setting is not defined, no MySQL connections are attempted by predictprotein. If it's defined, near the end of the predictprotein run, it will attempt to connect to the MySQL instance defined in the `ppcache-my.cnf` file on the Docker host, writing additional result data to the database tables.
+**Note**: Near the end of the predictprotein run, it will attempt to connect to the MySQL instance defined in the `ppcache-my.cnf` file on the Docker host, writing additional result data to the database tables.
 
 ### Creating a dedicated MySQL user and database
 
@@ -286,7 +281,7 @@ In order to successfully write data to the database, the proper MySQL database t
 ```shell
 # mysql -u root -p ppres < /var/tmp/pp-data/config/ppres_tables_mysql.sql
 ```
-Now, as long as the `mysql_read_default_file` setting in `ppcacherc` is uncommented, additional predictprotein result data will be created in the `ppres` database of the configured MySQL instance.
+Now, additional predictprotein result data will be created in the `ppres` database of the configured MySQL instance.
 
 ## License
 
