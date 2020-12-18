@@ -54,10 +54,22 @@ RUN dpkg -i /tmp/libboost-system1.49.0_1.49.0-3.2_amd64.deb && \
 RUN apt-get update && \
     apt-get install -y --allow-unauthenticated rostlab-debian-keyring && \
     apt-get install -y \
+    gdebi-core \
     pp-cache-mgr \
     predictprotein \
     predictprotein-nonfree && \
     rm -rf /var/lib/apt/lists/*
+
+# Install Rostlab-LCSB-specific (NON-PUBLIC) predictprotein version
+# replacing the general-availability version.
+# Unlike dpkg, gdebi will make sure dependencies, if any, are also
+# installed. 
+# Wildcard package name is used with gdebi, so that this file
+# doesn't have to be updated everytime there is a new version that
+# needs to be installed.
+COPY /package/predictprotein/*.deb /tmp/
+RUN gdebi --n /tmp/predictprotein_*_all.deb && \
+    rm -f /tmp/*.deb
 
 # Now that the packages are installed, copy configs and make necessary ones
 # available to docker hosts for configuring external services.
