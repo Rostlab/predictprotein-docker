@@ -13,7 +13,7 @@ RUN mkdir -p /usr/share/man/man1
 # Install public keys for repos
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys FCAE2A0E115C3D8A && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 228FE7B0D6EBED94 && \
-    apt-key adv --keyserver hkp://pool.sks-keyservers.net:80 --recv-keys 0xA5D32F012649A5A9
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0xA5D32F012649A5A9
 
 # So we can get packages from https repos and some necessary utilities
 # By removing /var/lib/apt/lists it reduces the image size, since the apt cache is not stored in a layer.
@@ -54,9 +54,11 @@ RUN dpkg -i /tmp/libboost-system1.49.0_1.49.0-3.2_amd64.deb && \
 RUN apt-get update && \
     apt-get install -y --allow-unauthenticated rostlab-debian-keyring && \
     apt-get install -y \
+    librg-pp-bundle-perl \
     pp-cache-mgr \
     predictprotein \
-    predictprotein-nonfree && \
+    predictprotein-nonfree \
+    profdisis && \
     rm -rf /var/lib/apt/lists/*
 
 # Now that the packages are installed, copy configs and make necessary ones

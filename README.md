@@ -7,13 +7,14 @@ The Docker image this creates is the exact version that runs on our cluster at [
 
 In an effort to preserve the current (as of 2020-09-08) version of predictprotein, including all of the methods it uses, this Dockerfile and its supporting packages, configuration files, and scripts, have been created, which will allow predictprotein to be able to be run from any current and (hopefully) future Docker-supported operating system.
 
-The produced Docker image will also include the suite of `pp-cache-mgr` utilities, which store, fetch, and manage predictprotein results which are stored in a hashed-indexed cache.
+The produced Docker image will also include the suite of `pp-cache-mgr` and `librg-pp-bundle-perl` utilities, which store, fetch, parse, and manage predictprotein results which are stored in a hashed-indexed cache.
 These utilities include:
 * `ppc_configtest` - PredictProtein cache config file sanity check
 * `ppc_fetch`      - fetch results from PredictProtein cache
 * `ppc_hash`       - print PredictProtein result hash
 * `ppc_lock`       - lock a cache slot
 * `ppc_store`      - store results into PredictProtein cache
+* `ppflat2xml`     - converts PredictProtein methods output to xml
 
 Although only the packages and data models necessary for its proper functioning have been installed, the produced Docker image will be larger than 12GB (!) in size, which doesn't include the necessary databases needed.
 
