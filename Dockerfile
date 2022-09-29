@@ -26,7 +26,7 @@ RUN apt-get update && \
     gcc \
     locales \
     patch \
-    wget \ 
+    wget \
     xz-utils && \
     localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 && \
     rm -rf /var/lib/apt/lists/*
@@ -51,9 +51,9 @@ RUN dpkg -i /tmp/libboost-system1.49.0_1.49.0-3.2_amd64.deb && \
     rm -f  /tmp/*.deb
 
 # Update and install predictprotein from APT repos
-RUN apt-get update && \
-    apt-get install -y --allow-unauthenticated rostlab-debian-keyring && \
-    apt-get install -y \
+RUN apt-get -o "Acquire::https::Verify-Peer=false" update && \
+    apt-get -o "Acquire::https::Verify-Peer=false" install -y --allow-unauthenticated rostlab-debian-keyring && \
+    apt-get -o "Acquire::https::Verify-Peer=false" install -y \
     librg-pp-bundle-perl \
     pp-cache-mgr \
     predictprotein \
@@ -76,7 +76,7 @@ RUN mkdir /etc/docker-predictprotein && \
 # Retrieve data models needed for loctree3 and metastudent data files
 RUN /usr/share/loctree3/loctree2data && \
     wget -O /usr/share/metastudent-data/metastudent-data-3-1.0.1.tar.xz \
-    ftp://rostlab.org/metastudent/metastudent-data-3-1.0.1.tar.xz && \
+    https://rostlab.org/public/metastudent/metastudent-data-3-1.0.1.tar.xz && \
     tar --no-same-owner --no-same-permissions --directory=/usr/share/metastudent-data/ -Jxvf /usr/share/metastudent-data/metastudent-data-3-1.0.1.tar.xz && \
     (cd /usr/share/metastudent-data/metastudent-data-3-1.0.1 && ./configure) && \
     make --directory=/usr/share/metastudent-data/metastudent-data-3-1.0.1 && \
