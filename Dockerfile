@@ -31,6 +31,11 @@ RUN apt-get update && \
     localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 && \
     rm -rf /var/lib/apt/lists/*
 
+# New LetsEncrypt Root Certs
+COPY /config/etc/ssl/certs/*.pem           /etc/ssl/certs/
+RUN sed -i '/^mozilla\/DST_Root_CA_X3.crt$/ s/^/!/' /etc/ca-certificates.conf && \
+    update-ca-certificates
+
 ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 
