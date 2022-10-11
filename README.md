@@ -3,7 +3,9 @@
 # predictprotein Docker
 ---
 
-The Docker image this creates is the exact version that runs on our cluster at [Rostlab](https://rostlab.org/) and the official [PredictProtein website](https://open.predictprotein.org/) hosted at the [Luxembourg Centre for Systems Biomedicine](https://wwwfr.uni.lu/lcsb) by [ELIXIR-LU](https://elixir-luxembourg.org/), the Luxembourgish node of ELIXIR, the European infrastructure for life science information.
+**NEW AS OF 2022-10-10:** A Docker image of this repository is now available at [our Rostlab Quay `predictprotein-docker` Docker image repository](https://registry.rostlab.org/repository/rostlab/predictprotein-docker). That means it is no longer required to build `predictprotein-docker` manually (i.e. using `docker build`) using this repository; although you still may, if you wish. Since third-party repositories may go offline at any time or not renew their encryption keys, effort has gone in to relying on external repositories and sources as little as possible in order to better preserve a reproducable and functioning `predictprotein-docker` image.
+
+The Docker image this creates is the exact version that runs at the official [PredictProtein website](https://predictprotein.org/) hosted at the [Luxembourg Centre for Systems Biomedicine](https://wwwfr.uni.lu/lcsb) by [ELIXIR-LU](https://elixir-luxembourg.org/), the Luxembourgish node of ELIXIR, the European infrastructure for life science information.
 
 In an effort to preserve the current (as of 2020-09-08) version of predictprotein, including all of the methods it uses, this Dockerfile and its supporting packages, configuration files, and scripts, have been created, which will allow predictprotein to be able to be run from any current and (hopefully) future Docker-supported operating system.
 
@@ -39,11 +41,13 @@ Don't do anything with the file just yet - [futher instructions are below](#pred
 After you've cloned this repository, you should be able to in to its directory, and run:
 
 ```shell
-$ export DOCKER_BUILDKIT=1
-$ docker build -t predictprotein .
+$ ./build.sh
 ```
 
-See [Build images with BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/) for more information about Docker BuildKit.
+In order to build the Docker image, necessary packages will be downloaded from our servers at `rostlab.org` and extracted by `build.sh`, which are then installed in the resulting `predictprotein` image. This was done for three reasons:
+1. "Free" tiers of repository hosting services - GitHub, Gitlab, Bitbucket, and so on - do not provide enough repository space to store all of the necessary packages
+2. Some of the third-party repositories are not extending/updating their encryption keys, letting them expire, thereby creating errors during the image build process
+3. Since many of the packages are relatively old and/or unmaintained, third-party repositories may eventually take them offline, making our Dockerfile unable to be built
 
 **This will take a long time** - Go grab a coffee, a snack, a walk in the park, or repair a hole in a sock (or two).
 

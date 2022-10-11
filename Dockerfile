@@ -3,41 +3,17 @@
 # greater than jessie
 FROM debian:jessie-slim
 
-# Keep and apt from asking questions
+# Keep Debian from asking questions
 ENV DEBIAN_FRONTEND noninteractive
 
 # Addresses package install failing due to non-existent man page directory
 # See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=863199
 RUN mkdir -p /usr/share/man/man1
 
-# Install public keys for repos
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys FCAE2A0E115C3D8A && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 228FE7B0D6EBED94 && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0xA5D32F012649A5A9
-
-# So we can get packages from https repos and some necessary utilities
-# By removing /var/lib/apt/lists it reduces the image size, since the apt cache is not stored in a layer.
-# See https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#run
-RUN apt-get update && \
-    apt-get install -y \
-    apt-transport-https \
-    bzip2 \
-    ca-certificates \
-    gcc \
-    locales \
-    patch \
-    wget \
-    xz-utils && \
-    localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 && \
-    rm -rf /var/lib/apt/lists/*
-
-# New LetsEncrypt Root Certs
-COPY /config/etc/ssl/certs/*.pem           /etc/ssl/certs/
-RUN sed -i '/^mozilla\/DST_Root_CA_X3.crt$/ s/^/!/' /etc/ca-certificates.conf && \
-    update-ca-certificates
-
-ENV LANG en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
+# Create directory for perlbrew perl version needed to run some methods
+# and copy perlbrew-provided compressed perl version
+RUN mkdir -p /usr/share/profphd/prof/perl5/dists/
+COPY /package/perlbrew/perl-5.10.1.tar.bz2 /usr/share/profphd/prof/perl5/dists/perl-5.10.1.tar.bz2
 
 # Add necessary repos
 COPY /config/etc/apt/*.conf                /etc/apt/
@@ -45,26 +21,29 @@ COPY /config/etc/apt/preferences.d/*.pref  /etc/apt/preferences.d/
 COPY /config/etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/
 COPY /config/etc/apt/apt.conf.d/*          /etc/apt/apt.conf.d/
 
-# Copy necessary packages no longer available through repos
-COPY /package/pp-cache-mgr/libboost/*.deb  /tmp/
-COPY /package/pp-cache-mgr/libicu48/*.deb  /tmp/
-RUN dpkg -i /tmp/libboost-system1.49.0_1.49.0-3.2_amd64.deb && \
-    dpkg -i /tmp/libboost-filesystem1.49.0_1.49.0-3.2_amd64.deb && \
-    dpkg -i /tmp/libboost-program-options1.49.0_1.49.0-3.2_amd64.deb && \
-    dpkg -i /tmp/libicu48_4.8.1.1-12+deb7u7_amd64.deb && \
-    dpkg -i /tmp/libboost-regex1.49.0_1.49.0-3.2_amd64.deb && \
-    rm -f  /tmp/*.deb
+# Add necessary debian packages
+COPY /package/pp-cache-mgr/libboost/*.deb  /var/tmp/
+COPY /package/pp-cache-mgr/libicu48/*.deb  /var/tmp/
+COPY /package/system/*.deb                 /var/tmp/
 
-# Update and install predictprotein from APT repos
-RUN apt-get -o "Acquire::https::Verify-Peer=false" update && \
-    apt-get -o "Acquire::https::Verify-Peer=false" install -y --allow-unauthenticated rostlab-debian-keyring && \
-    apt-get -o "Acquire::https::Verify-Peer=false" install -y \
-    librg-pp-bundle-perl \
-    pp-cache-mgr \
-    predictprotein \
-    predictprotein-nonfree \
-    profdisis && \
-    rm -rf /var/lib/apt/lists/*
+# Main installation of all .deb files, including predictprotein.
+# Doing this is an attempt at relying less on external sources for
+# the Docker image build.
+RUN dpkg --unpack --force-all /var/tmp/*.deb && \
+    dpkg --configure -a && \
+    rm /var/tmp/*.deb && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm /usr/share/profphd/prof/perl5/dists/perl-5.10.1.tar.bz2 && \
+    localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+
+ENV LANG en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+
+# New LetsEncrypt Root Certs - otherwise, loctree3 and metatstudent data files
+# won't be able to be retrieved.
+COPY /config/etc/ssl/certs/*.pem           /etc/ssl/certs/
+RUN sed -i '/^mozilla\/DST_Root_CA_X3.crt$/ s/^/!/' /etc/ca-certificates.conf && \
+    update-ca-certificates
 
 # Now that the packages are installed, copy configs and make necessary ones
 # available to docker hosts for configuring external services.

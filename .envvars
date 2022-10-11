@@ -1,0 +1,4 @@
+export DOCKER_BUILDKIT=1
+export VERSION="1.2.0"
+export NAME_PACKAGE="package_${VERSION}.tar.gz"
+export URL_PACKAGE="https://rostlab.org/public/predictprotein-docker/package/${NAME_PACKAGE}"
