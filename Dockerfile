@@ -19,7 +19,7 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys FCAE2A0E115C3D8A &&
 # By removing /var/lib/apt/lists it reduces the image size, since the apt cache is not stored in a layer.
 # See https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#run
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install -y --force-yes \
     apt-transport-https \
     bzip2 \
     ca-certificates \
@@ -52,12 +52,14 @@ RUN dpkg -i /tmp/libboost-system1.49.0_1.49.0-3.2_amd64.deb && \
 
 # Update and install predictprotein from APT repos
 RUN apt-get update && \
-    apt-get install -y --allow-unauthenticated rostlab-debian-keyring && \
-    apt-get install -y \
+    apt-get install -y --force-yes --allow-unauthenticated rostlab-debian-keyring && \
+    apt-get install -y --force-yes \
     gdebi-core \
     pp-cache-mgr \
     predictprotein \
-    predictprotein-nonfree && \
+    predictprotein-nonfree \
+    snap2 \
+    snap-cache-mgr && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Rostlab-LCSB-specific (NON-PUBLIC) predictprotein version
@@ -110,7 +112,9 @@ RUN ln -s /etc/docker-predictprotein/consurfrc         /etc/consurfrc && \
     ln -s /etc/docker-predictprotein/metastudentrc     /etc/metastudentrc && \
     ln -s /etc/docker-predictprotein/ppcache-my.cnf    /etc/ppcache/my.cnf && \
     ln -s /etc/docker-predictprotein/ppcacherc         /etc/ppcacherc && \
-    ln -s /etc/docker-predictprotein/predictproteinrc  /etc/predictproteinrc
+    ln -s /etc/docker-predictprotein/predictproteinrc  /etc/predictproteinrc && \
+    ln -s /etc/docker-predictprotein/snap2rc           /etc/snap2rc && \
+    ln -s /etc/docker-predictprotein/snapcacherc       /etc/snapcacherc
 
 # Create user for running predictprotein - not host dependent
 RUN groupadd -g 1000000 atlasg && useradd --no-log-init -g 1000000 -u 1000000 ppcache
