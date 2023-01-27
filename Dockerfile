@@ -55,6 +55,8 @@ RUN apt-get update && \
     apt-get install -y --force-yes --allow-unauthenticated rostlab-debian-keyring && \
     apt-get install -y --force-yes \
     gdebi-core \
+    librg-pp-bundle-perl \
+    pp2html \
     pp-cache-mgr \
     predictprotein \
     predictprotein-nonfree \
